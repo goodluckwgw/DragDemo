@@ -1,6 +1,29 @@
 apply plugin: 'com.android.application'
 
 android {
+   
+   //渠道Flavors
+    productFlavors {
+        //再debug环境上额外添加的测试环境
+        istest {
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "istest"]
+        }
+        xiaomi {
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "xiaomi"]
+        }
+        wandoujia {
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "wandoujia"]
+        }
+         zhushou91 {
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "zhushou91"]
+        }
+        market360 {
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "market360"]
+        }
+        yingyongbao {
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "yingyongbao"]
+        }
+}
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.cretin.www.dragdemo"
@@ -16,6 +39,46 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    
+     //遍历渠道
+    productFlavors.each {
+        flavors ->
+            if(flavors.name.equals("istest")){
+                //指定不同的applicationId,
+                flavors.applicationIdSuffix '.istest'
+                flavors.buildConfigField 'String','URL_CONFIG',ISTEST_URL
+            }else {
+                flavors.buildConfigField 'String','URL_CONFIG',RELEASE_URL
+            }
+
+
+    }
+    
+    //修改生成的apk名字及输出文件夹
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            //新名字
+            def newName
+            //时间戳
+            def timeNow
+            //输出文件夹
+            def outDirectory
+            //是否为Jenkins打包，输出路径不同
+            if ("true".equals(IS_JENKINS)) {
+                //BUILD_PATH为服务器输出路径
+                timeNow = BUILD_TIME
+                outDirectory = BUILD_PATH_JENKINS
+                //xx-v1.0-xiaomi-release.apk
+                newName = APPNAME+"-v"+APP_VERSION + '-' + variant.productFlavors[0].name + '-' + variant.buildType.name + '.apk'
+            } else {
+                //本机打包输出在本机路径
+                timeNow = getDate()
+                outDirectory = BUILD_PATH_LOCAL
+                newName = APPNAME+"-v"+APP_VERSION + '-' + variant.productFlavors[0].name + '-' + variant.buildType.name + '.apk'
+            }
+            output.outputFile = new File(outDirectory, newName)
+        }
+}
 }
 
 dependencies {
