@@ -83,7 +83,7 @@ android {
            // outputFileName = fileName // output.outputFile 改为 outputFileName 
             }
 
-            outputFileName  = new File(outDirectory, newName)
+            outputFileName  = new File(newName)
         }
 }
 }
